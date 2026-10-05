@@ -1,0 +1,28 @@
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Build artifacts (the pip package outputs)
+dist/
+build/
+*.egg-info/
+
+# Type checker cache
+.mypy_cache/
+
+# Test cache
+.pytest_cache/
+
+# IDE files (optional but common)
+.vscode/
+.idea/
+
+# exceptions:
+#*.example

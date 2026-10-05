@@ -1,0 +1,23 @@
+name: Lint  # Displayed on Github UI.
+
+on:  # When does it run.
+    pull_request:  # On every PR opened or updated.
+        branches:
+            - main  # Only PRs targeting main.
+
+jobs:  # What runs?
+    lint:  # Job name (arbitrary).
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4  # Built in action: clones repo.
+
+            - name: Install uv
+              uses: astral-sh/setup-uv@v5  # Official uv action.
+
+            - name: Install dependencies
+              run: uv sync  # Reads pyproject.toml + uv.lock.
+
+            - name: Lint
+              run: make lint # Runs the lint.
