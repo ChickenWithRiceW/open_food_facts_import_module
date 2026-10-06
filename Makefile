@@ -1,4 +1,4 @@
-ENTRY = example.py
+ENTRY = src/
 CONFIG = example.txt
 
 install:
@@ -16,11 +16,14 @@ clean:
 	find . -type d -name .pytest_cache -exec rm -rf {} +
 
 lint:
-	uv run flake8 src/ $(ENTRY)
+	uv run ruff check $(ENTRY)
 	uv run mypy src/
 	uv run mypy $(ENTRY)
 
 lint-strict:
-	uv run flake8 src/ $(ENTRY)
+	uv run ruff check $(ENTRY)
 	uv run mypy src/ --strict
 	uv run mypy $(ENTRY) --strict
+lint-fix:
+	uv run ruff check $(ENTRY) --fix 
+	uv run ruff format $(ENTRY)
