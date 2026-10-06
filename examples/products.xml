@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<products>
+  <product><barcode>0012345678905</barcode><product_name>Apple juice</product_name><nutrition><sugar_100g>10.2</sugar_100g></nutrition></product>
+  <product><barcode>0098765432105</barcode><product_name>Oat drink</product_name><nutrition><sugar_100g>3.4</sugar_100g></nutrition></product>
+</products>
