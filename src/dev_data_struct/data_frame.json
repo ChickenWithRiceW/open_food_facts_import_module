@@ -1,12 +1,12 @@
 {
   "identification": {
-    "code": {
+    "code": { 
       "dtype": "string"
     },
     "brands": {
       "dtype": "string"
     },
-    "org_name": {
+    "brand_owner": {
       "dtype": "string"
     },
     "producer_version_id": {
@@ -41,14 +41,8 @@
     "categories": {
       "dtype": "string"
     },
-    "categories_tags": {
-      "dtype": "list[string]"
-    },
     "labels": {
       "dtype": "string"
-    },
-    "labels_tags": {
-      "dtype": "list[string]"
     }
   },
 
@@ -90,31 +84,12 @@
       "dtype": "boolean"
     },
     "nutriments": {
-      "dtype": "dict[string, object]"
-    }
-  },
-
-  "storage_and_usage": {
-    "conservation_conditions": {
-      "dtype": "string"
-    },
-    "preparation": {
-      "dtype": "string"
-    }
-  },
-
-  "images": {
-    "image_front_url": {
-      "dtype": "string"
-    },
-    "image_other_url": {
-      "dtype": "string"
-    }
-  },
-
-  "customer_service": {
-    "customer_service": {
-      "dtype": "string"
+      "proteins": {"value_string": null, "unit": null},
+      "sugar": {"value_string": null, "unit": null},
+      "salt": {"value_string": null, "unit": null},
+      "saturated-fat": {"value_string": null, "unit": null},
+      "energy-kcal": {"value_string": null, "unit": null},
+      "energy-kj": {"value_string": null, "unit": null}
     }
   }
 }
