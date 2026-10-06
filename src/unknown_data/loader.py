@@ -307,7 +307,9 @@ def _flatten(record: dict[str, object], options: LoadOptions) -> dict[str, objec
     return flat
 
 
-def load_file(path: str | Path, options: LoadOptions | None = None) -> ImportResult:
+def load_file_result(
+    path: str | Path, options: LoadOptions | None = None
+) -> ImportResult:
     """Read a bounded CSV, JSON, JSONL, or XML file into a raw DataFrame.
 
     Args:
@@ -376,8 +378,50 @@ def load_file(path: str | Path, options: LoadOptions | None = None) -> ImportRes
             warnings.append(
                 "Nested lists/empty objects are preserved in cells, not expanded."
             )
-        # Object dtype avoids coercing missing integers to floats or losing IDs.
-        frame = pd.DataFrame(records, dtype=object)
+        # Fill only absent keys before pandas can introduce NaN. Never replace
+        # submitted values (including empty strings, literal "NaN", or null).
+        ordered_columns = list(dict.fromkeys(key for row in records for key in row))
+        complete_records = [
+            {key: row.get(key, None) for key in ordered_columns} for row in records
+        ]
+        # Object dtype preserves None, mixed types and large integer identifiers.
+        frame = pd.DataFrame(complete_records, columns=ordered_columns, dtype=object)
         return ImportResult(frame, path.name, file_format, warnings)
     except RecursionError as exc:
         raise LoadError("depth", "Input nesting is too deep to parse.") from exc
+
+
+def load_file(path: str | Path, options: LoadOptions | None = None) -> pd.DataFrame:
+    """Return the parsed DataFrame without product-value validation.
+
+    CSV/XML values remain strings. JSON scalar types are preserved, nested
+    objects use dotted columns, and lists/empty objects remain cell values.
+    No OFF schema, nutrient type, unit, range or barcode validation is performed.
+    For metadata and previews use load_file_result instead.
+    """
+    return load_file_result(path, options).dataframe
+
+
+def load_dataframe(
+    frame: pd.DataFrame, options: LoadOptions | None = None
+) -> pd.DataFrame:
+    """Copy an existing DataFrame without validating or converting its values.
+
+    Preserve columns, index, dtypes, missing values and nested cells. Pandas'
+    deep copy does not recursively copy Python objects stored inside cells.
+    Only option and resource-limit checks apply; file parsing options do not.
+    """
+    options = options or LoadOptions()
+    _validate_options(options)
+    if (
+        options.format
+        or options.delimiter
+        or options.records_path
+        or options.xml_record_tag
+    ):
+        raise LoadError("options", "File parsing options do not apply to DataFrames.")
+    if len(frame) > options.max_rows:
+        raise LoadError("rows", "Dataset exceeds the row limit.")
+    if len(frame.columns) > options.max_columns:
+        raise LoadError("columns", "Dataset exceeds the column limit.")
+    return frame.copy(deep=True)

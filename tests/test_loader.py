@@ -6,7 +6,8 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from unknown_data import LoadError, LoadOptions, load_file
+from unknown_data import LoadError, LoadOptions
+from unknown_data import load_file_result as load_file
 
 
 def write(tmp_path: Path, name: str, content: str) -> Path:

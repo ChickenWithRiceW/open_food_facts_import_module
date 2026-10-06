@@ -5,7 +5,7 @@ import json
 import sys
 from typing import cast
 
-from unknown_data.loader import Format, LoadError, LoadOptions, load_file
+from unknown_data.loader import Format, LoadError, LoadOptions, load_file_result
 
 
 def main() -> int:
@@ -26,7 +26,7 @@ def main() -> int:
         xml_record_tag=args.xml_record_tag,
     )
     try:
-        result = load_file(args.file, options)
+        result = load_file_result(args.file, options)
     except LoadError as exc:
         print(
             json.dumps({"error": {"code": exc.code, "message": str(exc)}}),

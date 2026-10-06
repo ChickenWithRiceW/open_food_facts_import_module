@@ -3,7 +3,8 @@
 ## Unknown Data loader
 
 The first ingestion stage reads supported raw files into a pandas DataFrame.
-It returns the table, source filename, format, warnings, and a small JSON preview.
+The main function returns the DataFrame directly. The optional `load_file_result`
+function returns it with source filename, format, warnings and a small JSON preview.
 Field mapping, unit conversion, product validation, and website integration belong
 to subsequent components and are not implemented here.
 
@@ -30,9 +31,7 @@ target remains a starter placeholder.
 from unknown_data import LoadError, LoadOptions, load_file
 
 try:
-    result = load_file("examples/products.csv")
-    dataframe = result.dataframe  # pass to the next transformation stage
-    preview = result.preview()  # JSON-compatible dict for a future web endpoint
+    dataframe = load_file("examples/products.csv")  # pass directly to Plugin
 except LoadError as exc:
     error = {"code": exc.code, "message": str(exc)}
 ```
@@ -40,6 +39,44 @@ except LoadError as exc:
 Use `LoadOptions(records_path=("products",))` for a JSON wrapper; multiple keys
 select a nested wrapper. CSV delimiter and encoding can be supplied explicitly:
 `LoadOptions(delimiter=";", encoding="cp1252")`.
+
+### Values are not validated against product rules
+
+`apple_suggar_100g = "banana"` is accepted and preserved. The loader does not
+check nutrient types, ranges, units, OFF field names, barcode validity, or required
+product fields. These checks belong downstream. CSV/XML cells stay strings;
+JSON preserves its parsed scalar types. Absent fields receive Python `None` rather than automatically generated `NaN`.
+Explicit JSON null also becomes `None`. Empty strings and literal strings such as
+`"NaN"`, `"NA"` and `"null"` are preserved. Existing DataFrame missing values are
+left unchanged. The earlier loader already accepted arbitrary product values.
+
+The temporary list-output implementation has been reverted: lists and empty
+objects remain in cells instead of being expanded or changed to `None`.
+
+```python
+from unknown_data import load_dataframe, load_file_result
+
+# Accept an already constructed DataFrame without value conversion/validation:
+# dataframe = load_dataframe(existing_dataframe)
+
+# Only when metadata is needed:
+result = load_file_result("examples/products.csv")
+dataframe = result.dataframe
+preview = result.preview()
+```
+
+`load_dataframe` preserves index, columns, dtypes, dates, missing values and nested
+cells. It copies the frame; nested Python objects inside cells remain shared as
+in pandas' normal deep-copy behavior. Only resource limits/options are checked.
+
+File parsing still reports unreadable files, invalid syntax, ambiguous structures
+and resource limits. Those errors concern reading the data, not product validity.
+For example, an unclosed CSV quote is a parsing error; `banana` in a sugar column
+is valid input for this stage. JSON NaN/Infinity tokens are not valid JSON and
+remain parsing errors; existing DataFrame values are left unchanged.
+
+Migration: replace the original `load_file(...).dataframe` with `load_file(...)`.
+The temporary list-returning version uses the same call but now returns a DataFrame.
 
 ### Supported inputs and behavior
 
@@ -51,7 +88,7 @@ select a nested wrapper. CSV delimiter and encoding can be supplied explicitly:
 | XML | Root container with same-tag record children; no container metadata or mixed text |
 
 CSV and XML values remain strings, preserving barcode leading zeroes. JSON retains
-source types. Missing JSON/XML fields produce missing cells and a warning. A later
+source types. Missing JSON/XML fields produce `None` cells and a warning. A later
 mapping stage should apply field-specific type conversions.
 
 Nested object fields become dotted columns such as `nutrition.sugar_100g`.
