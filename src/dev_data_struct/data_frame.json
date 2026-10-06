@@ -1,0 +1,120 @@
+{
+  "identification": {
+    "code": {
+      "dtype": "string"
+    },
+    "brands": {
+      "dtype": "string"
+    },
+    "org_name": {
+      "dtype": "string"
+    },
+    "producer_version_id": {
+      "dtype": "string"
+    },
+    "lang": {
+      "dtype": "string"
+    },
+    "lc": {
+      "dtype": "string"
+    },
+    "countries": {
+      "dtype": "string"
+    },
+    "origin": {
+      "dtype": "string"
+    }
+  },
+
+  "product_names": {
+    "generic_name": {
+      "dtype": "dict[string, string]",
+      "keys": "language_code"
+    },
+    "product_name": {
+      "dtype": "dict[string, string]",
+      "keys": "language_code"
+    }
+  },
+
+  "categories_and_labels": {
+    "categories": {
+      "dtype": "string"
+    },
+    "categories_tags": {
+      "dtype": "list[string]"
+    },
+    "labels": {
+      "dtype": "string"
+    },
+    "labels_tags": {
+      "dtype": "list[string]"
+    }
+  },
+
+  "ingredients_and_allergens": {
+    "ingredients_text": {
+      "dtype": "string"
+    },
+    "allergens": {
+      "dtype": "string"
+    },
+    "traces": {
+      "dtype": "string"
+    }
+  },
+
+  "quantity": {
+    "quantity": {
+      "dtype": "string"
+    },
+    "product_quantity": {
+      "dtype": "Float64"
+    },
+    "product_quantity_unit": {
+      "dtype": "string"
+    },
+    "serving_quantity": {
+      "dtype": "Float64"
+    },
+    "serving_quantity_unit": {
+      "dtype": "string"
+    },
+    "serving_size": {
+      "dtype": "string"
+    }
+  },
+
+  "nutrition": {
+    "no_nutrition_data": {
+      "dtype": "boolean"
+    },
+    "nutriments": {
+      "dtype": "dict[string, object]"
+    }
+  },
+
+  "storage_and_usage": {
+    "conservation_conditions": {
+      "dtype": "string"
+    },
+    "preparation": {
+      "dtype": "string"
+    }
+  },
+
+  "images": {
+    "image_front_url": {
+      "dtype": "string"
+    },
+    "image_other_url": {
+      "dtype": "string"
+    }
+  },
+
+  "customer_service": {
+    "customer_service": {
+      "dtype": "string"
+    }
+  }
+}
