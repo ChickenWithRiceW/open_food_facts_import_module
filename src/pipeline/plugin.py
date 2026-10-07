@@ -238,7 +238,6 @@ if __name__ == "__main__":
                     "GlobalTradeItemNumber",
                     "TIDFunctionalName[de]",
                     "TIDDescriptionShort[de]",
-                    "TIDBrandName",
                     "regulatedProductNameValue[de]",
                 ]
             ],
