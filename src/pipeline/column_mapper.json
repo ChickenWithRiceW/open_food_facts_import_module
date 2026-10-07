@@ -2,6 +2,7 @@
   "code": "GlobalTradeItemNumber",
   "brand_owner": "NameOfBrandOwner",
   "brands": "TIDBrandName",
+  "product_name": "TIDDescriptionShort[de]",
   "language": "de",
   "fdc_id": null,
   "subbrand_name": "TIDSubBrand",
