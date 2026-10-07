@@ -216,9 +216,10 @@ if __name__ == "__main__":
 
     try:
         all_sheets = {
-            sheet_name: pd.read_excel(excel_file, sheet_name=sheet_name, header=5)
+            sheet_name: pd.read_excel(excel_file, sheet_name=sheet_name, header=5).iloc[5:]
             for sheet_name in pd.ExcelFile(excel_file).sheet_names
         }
+
 
         def clean_sheet_name(sheet_name: str) -> str:
             return (
