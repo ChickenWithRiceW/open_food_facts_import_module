@@ -27,3 +27,10 @@ lint-strict:
 lint-fix:
 	uv run ruff check $(ENTRY) --fix 
 	uv run ruff format $(ENTRY)
+
+.PHONY: test demo
+test:
+	uv run pytest -q
+
+demo:
+	uv run unknown-data examples/products.csv

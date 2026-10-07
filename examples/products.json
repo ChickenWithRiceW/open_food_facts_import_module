@@ -1,0 +1,4 @@
+{"products": [
+  {"barcode": "0012345678905", "product_name": "Apple juice", "nutrition": {"sugar_100g": 10.2}},
+  {"barcode": "0098765432105", "product_name": "Oat drink", "nutrition": {"sugar_100g": 3.4}}
+]}

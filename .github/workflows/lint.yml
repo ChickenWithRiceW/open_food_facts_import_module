@@ -21,3 +21,9 @@ jobs:  # What runs?
 
             - name: Lint
               run: make lint # Runs the lint.
+
+            - name: Strict types
+              run: make lint-strict
+
+            - name: Tests
+              run: make test
