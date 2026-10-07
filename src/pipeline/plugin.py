@@ -1,7 +1,7 @@
 import json
 import warnings
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 import pandas as pd
 
 # Suppress openpyxl warnings about missing default styles
@@ -122,18 +122,27 @@ class ColumnNameConverter:
                 result_df[target_col] = source
 
         # Populate flat nutrient columns if present in target schema or needed
-        if "protein_value" not in result_df.columns and "PRO-" in gs1_nutrients:
-            result_df["protein_value"] = gs1_nutrients["PRO-"]
-            result_df["protein_unit"] = "g"
-        if "sugar_value" not in result_df.columns and "SUGAR-" in gs1_nutrients:
-            result_df["sugar_value"] = gs1_nutrients["SUGAR-"]
-            result_df["sugar_unit"] = "g"
-        if "salt_value" not in result_df.columns and "SALTEQ" in gs1_nutrients:
-            result_df["salt_value"] = gs1_nutrients["SALTEQ"]
-            result_df["salt_unit"] = "g"
+        if "fat_value" not in result_df.columns and "FAT" in gs1_nutrients:
+            result_df["fat_value"] = gs1_nutrients["FAT"]
+            result_df["fat_unit"] = "g"
         if "saturated_fat_value" not in result_df.columns and "FASAT" in gs1_nutrients:
             result_df["saturated_fat_value"] = gs1_nutrients["FASAT"]
             result_df["saturated_fat_unit"] = "g"
+        if "carbohydrates_value" not in result_df.columns and "CHOAVL" in gs1_nutrients:
+            result_df["carbohydrates_value"] = gs1_nutrients["CHOAVL"]
+            result_df["carbohydrates_unit"] = "g"
+        if "sugar_value" not in result_df.columns and "SUGAR-" in gs1_nutrients:
+            result_df["sugar_value"] = gs1_nutrients["SUGAR-"]
+            result_df["sugar_unit"] = "g"
+        if "fiber_value" not in result_df.columns and "FIBTG" in gs1_nutrients:
+            result_df["fiber_value"] = gs1_nutrients["FIBTG"]
+            result_df["fiber_unit"] = "g"
+        if "protein_value" not in result_df.columns and "PRO-" in gs1_nutrients:
+            result_df["protein_value"] = gs1_nutrients["PRO-"]
+            result_df["protein_unit"] = "g"
+        if "salt_value" not in result_df.columns and "SALTEQ" in gs1_nutrients:
+            result_df["salt_value"] = gs1_nutrients["SALTEQ"]
+            result_df["salt_unit"] = "g"
         if (
             "energy_value" not in result_df.columns
             and "calorificValueKcal" in df.columns
@@ -142,13 +151,18 @@ class ColumnNameConverter:
                 df["calorificValueKcal"], errors="coerce"
             )
             result_df["energy_unit"] = "kcal"
+        if (
+            "energy_kj_value" not in result_df.columns
+            and "calorificValueKJ" in df.columns
+        ):
+            result_df["energy_kj_value"] = pd.to_numeric(
+                df["calorificValueKJ"], errors="coerce"
+            )
+            result_df["energy_kj_unit"] = "kJ"
 
         return result_df
 
-
-    def save_converted_data(
-        self, converted_df: pd.DataFrame, output_path: str
-    ) -> None:
+    def save_converted_data(self, converted_df: pd.DataFrame, output_path: str) -> None:
         """Convert DataFrame and save to file.
 
         Args:
@@ -169,9 +183,13 @@ if __name__ == "__main__":
 
     converter = ColumnNameConverter()
 
-    print("Loading data from Excel...")
+    default_input = (
+        Path(__file__).parent.parent / "dev_data_struct" / "sample_salsify.xlsx"
+    )
     excel_file = (
-        Path(__file__).parent.parent / "input" / "sample_salsify.xlsx"
+        default_input
+        if default_input.exists()
+        else Path(__file__).parent.parent / "input" / "sample_salsify.xlsx"
     )
 
     try:
@@ -255,7 +273,7 @@ if __name__ == "__main__":
 
         converted_df = converter.convert(merged_df)
 
-        output_path = Path(__file__).parent.parent / "output/loader_output.csv"
+        output_path = Path(__file__).parent.parent / "loader_output.csv"
         converter.save_converted_data(converted_df, str(output_path))
 
     except FileNotFoundError as e:
