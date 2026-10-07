@@ -217,7 +217,7 @@ if __name__ == "__main__":
 
     print("Loading data from Excel...")
     excel_file = (
-        Path(__file__).parent.parent / "dev_data_struct" / "sample_salsify.xlsx"
+        Path(__file__).parent.parent / "input" / "sample_salsify.xlsx"
     )
 
     try:
@@ -326,7 +326,7 @@ if __name__ == "__main__":
             if col in sample_row.columns:
                 print(f"  {col}: {sample_row[col].values[0]}")
 
-        output_path = Path(__file__).parent.parent / "loader_output.csv"
+        output_path = Path(__file__).parent.parent / "output/loader_output.csv"
         converter.save_converted_data(merged_df, str(output_path), format="csv")
 
     except FileNotFoundError as e:
