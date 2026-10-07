@@ -157,6 +157,7 @@ if __name__ == "__main__":
                                         'HRICompulsoryAdditivesLabelInformation[de]']],
             df["Gefahrgut_Gefahrstoff"][['GlobalTradeItemNumber',
                                     'WSCEDangerousGoodsIndication']],
+            df['Artikellogistik'][['GlobalTradeItemNumber','link']],
             df["Angaben_für_die_Lebensmitt"][['GlobalTradeItemNumber',
                                        'ingredientStatementValue[de]',
                                        'FBSNumberOfServingsPerPackage',
