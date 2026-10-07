@@ -115,10 +115,32 @@ class ColumnNameConverter:
 
             # Case B: Source is a direct column present in input DataFrame
             elif source in df.columns:
-                result_df[target_col] = df[source]
+                val_series = df[source].copy()
+                # Combine any repeating column variants (e.g. source.1, source.2, etc.)
+                for i in range(1, 10):
+                    col_variant = f"{source}.{i}"
+                    if col_variant in df.columns:
+                        val_series = val_series.combine_first(df[col_variant])
 
-            # Case C: Source is a static unit string
-            elif source in ["g", "kcal", "kJ", "mg", "GRM", "MLT"]:
+                # Transform specific fields if needed
+                if target_col == "market_country":
+                    # Convert ISO numeric country code (276 -> Germany)
+                    country_map = {
+                        "276": "Germany",
+                        276: "Germany",
+                        "DE": "Germany",
+                        "de": "Germany",
+                    }
+                    val_series = val_series.map(
+                        lambda x: (
+                            country_map.get(str(x).strip(), x) if pd.notna(x) else x
+                        )
+                    )
+
+                result_df[target_col] = val_series
+
+            # Case C: Source is a static unit or metadata string
+            elif source in ["g", "kcal", "kJ", "mg", "GRM", "MLT", "de", "GDSN"]:
                 result_df[target_col] = source
 
         # Populate flat nutrient columns if present in target schema or needed
@@ -225,9 +247,13 @@ if __name__ == "__main__":
             "calorificValueKcal",
             "calorificValueKJ",
         ]
-        # Include all nutritionalContent slots present in sheet
+        # Include all nutritionalContent, servingSize, and preparationState slots present in sheet
         for col in df["Angaben_für_die_Lebensmitt"].columns:
-            if col.startswith("nutritionalContent") and col not in nutri_cols:
+            if (
+                col.startswith("nutritionalContent")
+                or col.startswith("servingSize")
+                or col.startswith("preparationState")
+            ) and col not in nutri_cols:
                 nutri_cols.append(col)
 
         dfs_to_merge = [
@@ -254,13 +280,23 @@ if __name__ == "__main__":
             df["Artikelbeschreibung"][
                 [
                     "GlobalTradeItemNumber",
+                    "TIDBrandName",
+                    "TIDSubBrand",
                     "TIDFunctionalName[de]",
                     "TIDDescriptionShort[de]",
                     "regulatedProductNameValue[de]",
                 ]
             ],
             df["Artikelidentifikation"][
-                ["GlobalTradeItemNumber", "NameOfBrandOwner", "targetMarketCountryCode"]
+                [
+                    "GlobalTradeItemNumber",
+                    "NameOfBrandOwner",
+                    "TargetMarketCountryCode",
+                    "EffectiveDateTime",
+                    "PublicationDateTime",
+                    "DiscontinuedDate",
+                    "tradeItemtradeChannel",
+                ]
             ],
         ]
 
