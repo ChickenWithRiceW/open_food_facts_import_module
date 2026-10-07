@@ -22,7 +22,7 @@
   "trade_channel": "tradeItemtradeChannel",
   "short_description": "TIDDescriptionShort[de]",
   "material_code": null,
-
+  "product_front_image_link": "link",
   "labelNutrients.fat.value": "FAT",
   "labelNutrients.saturatedFat.value": "FASAT",
   "labelNutrients.transFat.value": null,
