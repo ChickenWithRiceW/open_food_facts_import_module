@@ -145,66 +145,20 @@ class ColumnNameConverter:
 
         return result_df
 
-    def get_unmapped_columns(self, df: pd.DataFrame) -> List[str]:
-        """Get list of columns in DataFrame that don't have a mapping.
-
-        Args:
-            df: DataFrame to check
-
-        Returns:
-            List of unmapped column names
-        """
-        mapped_sources = set(self.db_to_eda_map.values())
-        return [
-            col
-            for col in df.columns
-            if col not in mapped_sources and not col.startswith("nutritionalContent")
-        ]
-
-    def get_mapping_info(self) -> Dict[str, object]:
-        """Get information about the mappings.
-
-        Returns:
-            Dictionary with mapping statistics
-        """
-        total_db_columns = len(self.db_to_eda_map)
-        mapped_db_columns = sum(1 for v in self.db_to_eda_map.values() if v is not None)
-        unmapped_db_columns = total_db_columns - mapped_db_columns
-
-        return {
-            "total_db_columns": total_db_columns,
-            "mapped_db_columns": mapped_db_columns,
-            "unmapped_db_columns": unmapped_db_columns,
-            "db_to_eda_map": self.db_to_eda_map,
-        }
 
     def save_converted_data(
-        self, df: pd.DataFrame, output_path: str, format: str = "csv"
+        self, converted_df: pd.DataFrame, output_path: str
     ) -> None:
         """Convert DataFrame and save to file.
 
         Args:
-            df: DataFrame with EDA column names
+            converted_df: DataFrame with converted column names
             output_path: Path to save the converted data
-            format: File format ('csv', 'excel', 'tsv', or 'parquet')
         """
-        converted_df = self.convert(df)
         out_path = Path(output_path)
         out_path.parent.mkdir(parents=True, exist_ok=True)
 
-        fmt = format.lower()
-        if fmt == "csv":
-            converted_df.to_csv(out_path, index=False, encoding="utf-8")
-        elif fmt == "tsv":
-            converted_df.to_csv(out_path, index=False, sep="\t", encoding="utf-8")
-        elif fmt in ["excel", "xlsx"]:
-            converted_df.to_excel(out_path, index=False)
-        elif fmt == "parquet":
-            converted_df.to_parquet(out_path, index=False)
-        else:
-            raise ValueError(
-                f"Unsupported format: {format}. Use 'csv', 'tsv', 'excel', or 'parquet'."
-            )
+        converted_df.to_csv(out_path, index=False, encoding="utf-8")
 
         print(f"Converted data saved to: {out_path}")
 
@@ -214,10 +168,6 @@ if __name__ == "__main__":
     from functools import reduce
 
     converter = ColumnNameConverter()
-    info = converter.get_mapping_info()
-    print(f"Total DB columns: {info['total_db_columns']}")
-    print(f"Mapped DB columns: {info['mapped_db_columns']}")
-    print(f"Unmapped DB columns: {info['unmapped_db_columns']}\n")
 
     print("Loading data from Excel...")
     excel_file = (
@@ -304,34 +254,10 @@ if __name__ == "__main__":
             dfs_to_merge,
         )
 
-        print(f"Merged dataframe shape: {merged_df.shape}")
-        print("Converting column names and extracting nutrients...")
         converted_df = converter.convert(merged_df)
 
-        print(f"Converted dataframe shape: {converted_df.shape}")
-        print(f"Converted columns ({len(converted_df.columns)}):")
-        for col in converted_df.columns:
-            print(f"  - {col}")
-
-        # Preview sample product row 0
-        sample_row = converted_df.dropna(subset=["code"]).head(1)
-        print("\nSample converted product:")
-        for col in [
-            "code",
-            "brands",
-            "brand_owner",
-            "branded_food_category",
-            "labelNutrients.calories.value",
-            "labelNutrients.protein.value",
-            "labelNutrients.fat.value",
-            "labelNutrients.sugars.value",
-            "labelNutrients.sodium.value",
-        ]:
-            if col in sample_row.columns:
-                print(f"  {col}: {sample_row[col].values[0]}")
-
         output_path = Path(__file__).parent.parent / "output/loader_output.csv"
-        converter.save_converted_data(merged_df, str(output_path), format="csv")
+        converter.save_converted_data(converted_df, str(output_path))
 
     except FileNotFoundError as e:
         print(f"Error: {e}")
