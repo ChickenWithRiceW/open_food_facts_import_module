@@ -1,7 +1,11 @@
 import json
+import warnings
 from pathlib import Path
 from typing import Dict, List, Optional
 import pandas as pd
+
+# Suppress openpyxl warnings about missing default styles
+warnings.filterwarnings("ignore", category=UserWarning, module="openpyxl")
 
 
 class ColumnNameConverter:
