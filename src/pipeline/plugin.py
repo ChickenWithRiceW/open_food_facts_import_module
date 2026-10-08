@@ -3,6 +3,10 @@ import warnings
 from pathlib import Path
 from typing import Dict, Optional
 import pandas as pd
+import requests
+from PIL import Image
+from io import BytesIO
+from functools import reduce
 
 # Suppress openpyxl warnings about missing default styles
 warnings.filterwarnings("ignore", category=UserWarning, module="openpyxl")
@@ -198,23 +202,73 @@ class ColumnNameConverter:
 
         print(f"Converted data saved to: {out_path}")
 
+    def download_product_images(
+        self,
+        df: pd.DataFrame,
+        output_dir: str = "product_images",
+        code_column: str = "code",
+        url_column: str = "product_front_image_link",
+    ) -> dict:
+        """Download product images from URLs and save as JPG files named by product code.
 
-# Example usage
-if __name__ == "__main__":
-    from functools import reduce
+        Args:
+            df: DataFrame containing product codes and image URLs
+            output_dir: Directory to save images (relative or absolute path)
+            code_column: Name of column containing product codes
+            url_column: Name of column containing image URLs
 
-    converter = ColumnNameConverter()
+        Returns:
+            dict with keys 'successful', 'failed', 'failed_codes', 'output_dir'
+        """
+        images_path = Path(output_dir)
+        images_path.mkdir(parents=True, exist_ok=True)
 
-    default_input = (
-        Path(__file__).parent.parent / "dev_data_struct" / "sample_salsify.xlsx"
-    )
-    excel_file = (
-        default_input
-        if default_input.exists()
-        else Path(__file__).parent.parent / "input" / "sample_salsify.xlsx"
-    )
+        successful = 0
+        failed = 0
+        failed_codes = []
 
-    try:
+        for idx, row in df.iterrows():
+            code = str(row[code_column]).strip()
+            image_url = str(row[url_column]).strip()
+
+            # Skip if URL is empty or NaN
+            if not image_url or image_url.lower() == "nan":
+                continue
+
+            try:
+                # Download image
+                response = requests.get(image_url, timeout=10)
+                response.raise_for_status()
+
+                # Convert to JPG and save
+                img = Image.open(BytesIO(response.content)).convert("RGB")
+                image_path = images_path / f"{code}.jpg"
+                img.save(image_path, "JPEG", quality=95)
+
+                successful += 1
+                if (idx + 1) % 50 == 0:
+                    print(f"Downloaded {idx + 1} images...")
+
+            except Exception as e:
+                failed += 1
+                failed_codes.append(code)
+                if failed <= 10:  # Show first 10 errors
+                    print(f"Failed to download {code}: {str(e)[:100]}")
+
+        result = {
+            "successful": successful,
+            "failed": failed,
+            "failed_codes": failed_codes,
+            "output_dir": str(images_path.resolve()),
+        }
+
+        print(f"\n✓ Successfully downloaded: {successful}")
+        print(f"✗ Failed: {failed}")
+        print(f"Images saved to: {result['output_dir']}")
+
+        return result
+
+    def merge_sheets(self, excel_file: str) -> pd.DataFrame:
         all_sheets = {
             sheet_name: pd.read_excel(excel_file, sheet_name=sheet_name, header=5).iloc[5:]
             for sheet_name in pd.ExcelFile(excel_file).sheet_names
@@ -308,10 +362,29 @@ if __name__ == "__main__":
             dfs_to_merge,
         )
 
-        converted_df = converter.convert(merged_df)
+        return merged_df
 
-        output_path = Path(__file__).parent.parent / "loader_output.csv"
+
+# Example usage
+if __name__ == "__main__":
+
+    default_input = (
+        Path(__file__).parent.parent / "dev_data_struct" / "sample_salsify.xlsx"
+    )
+    excel_file = (
+        default_input
+        if default_input.exists()
+        else Path(__file__).parent.parent / "input" / "sample_salsify.xlsx"
+    )
+
+    output_path = Path(__file__).parent.parent / "loader_output.csv"
+
+    try:
+        converter = ColumnNameConverter()
+        merged_df = converter.merge_sheets(excel_file)
+        converted_df = converter.convert(merged_df)
         converter.save_converted_data(converted_df, str(output_path))
+        converter.download_product_images(converted_df)
 
     except FileNotFoundError as e:
         print(f"Error: {e}")
