@@ -24,5 +24,8 @@ build/
 .vscode/
 .idea/
 
+# Images
+/src/pipeline/product_images/*.jpg
+
 # exceptions:
 #*.example
